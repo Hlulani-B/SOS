@@ -58,7 +58,7 @@ Even the browser tab is part of the cover: the page title always shows the curre
 ### What reaches the contacts
 
 - **SOS** — an email with her name, her pre-written message, and a **Google Maps pin of her live GPS location**.
-- **Audio / Video** — an email with the recording **attached as a playable file** (MP4/M4A — chosen deliberately because mail apps cannot open the webm format browsers record by default), alongside her message. The file is also saved on the device.
+- **Audio / Video** — an email with the recording **attached as a playable file** (MP4/M4A — chosen deliberately because mail apps cannot open the webm format browsers record by default), alongside her message and a live location link. The file is also saved on the device.
 - All alerts go to **contacts she chose and stored herself** — nothing is hardcoded, nothing leaves the device except the alert itself.
 
 ### Privacy architecture
@@ -211,7 +211,8 @@ Every natural design (accounts, a contacts database, message history) would crea
 2. `MediaRecorder` with a negotiated MIME type — `pickRecorderMime()` in `recorderFormats.js` tries MP4 variants first and falls back to webm, checking `isTypeSupported`.
 3. On stop: the blob is typed with the recorder's actual MIME, saved to the device (`audioDownload` / `videoDownload`, extension matched to the real format), then handed to the send wrapper.
 4. `blobToBase64()` encodes the raw bytes in 32KB chunks (data-URL parsing is avoided by design — see Challenge 5).
-5. `sendAlertEmail(subject, text, attachments)` in `sendAlert.js` is the single dispatcher for all three alert types: reads contacts from `localStorage`, validates email recipients, enforces the attachment size guard, and POSTs to `/api/emails`.
+5. `getMapsLink()` (`functions/location.js`) resolves a Google Maps link for the email body — shared by all three alert paths, and it never rejects (denied permission or a timed-out fix resolves as "Location unavailable"), so no alert can be lost to a geolocation failure.
+6. `sendAlertEmail(subject, text, attachments)` in `sendAlert.js` is the single dispatcher for all three alert types: reads contacts from `localStorage`, validates email recipients, enforces the attachment size guard, and POSTs to `/api/emails`.
 
 ### The delivery path
 

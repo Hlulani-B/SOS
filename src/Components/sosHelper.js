@@ -10,43 +10,22 @@
  */
 
 import { sendAlertEmail } from '../functions/sendAlert';
+import { getMapsLink } from '../functions/location';
 
 export function SOSsend(fallbackNumbers, onStatusUpdate) {
   // Contacts come only from localStorage (read inside sendAlertEmail) -
   // fallbackNumbers is accepted for signature compatibility but ignored.
-
-  if (!navigator.geolocation) {
-    console.warn("Geolocation unavailable - sending without location");
-    sendSOSAlert(null, onStatusUpdate);
-    return;
-  }
-
-  console.log("Acquiring location...");
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      sendSOSAlert(
-        { lat: position.coords.latitude, lon: position.coords.longitude },
-        onStatusUpdate
-      );
-    },
-    (err) => {
-      console.warn("Geolocation error:", err.message);
-      sendSOSAlert(null, onStatusUpdate);
-    },
-    { enableHighAccuracy: true, timeout: 10000 }
-  );
+  sendSOSAlert(onStatusUpdate);
 }
 
-async function sendSOSAlert(coords, onStatusUpdate) {
+async function sendSOSAlert(onStatusUpdate) {
   // Get user profile
   const userProfile = JSON.parse(localStorage.getItem("user_profile") || "{}");
   const userName = `${userProfile.firstName || ""} ${userProfile.surname || ""}`.trim();
   const customMessage = userProfile.customMessage || "I need help.";
 
-  const mapsLink = coords
-    ? `https://maps.google.com/?q=${coords.lat},${coords.lon}`
-    : "Location unavailable";
+  console.log("Acquiring location...");
+  const mapsLink = await getMapsLink();
 
   console.log("Sending alerts...");
 

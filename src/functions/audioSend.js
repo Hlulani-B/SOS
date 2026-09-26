@@ -7,6 +7,7 @@
  */
 
 import { sendAlertEmail, blobToBase64 } from './sendAlert';
+import { getMapsLink } from './location';
 
 export async function audioSend(blob, userEmail = "user@example.com") {
   try {
@@ -39,9 +40,11 @@ export async function audioSend(blob, userEmail = "user@example.com") {
       console.warn("No recording data captured - sending the alert without an attachment.");
     }
 
+    const mapsLink = await getMapsLink();
+
     await sendAlertEmail(
       `EMERGENCY ALERT from ${userName}`,
-      `EMERGENCY ALERT from ${userName}\n\n${customMessage}\n\nAudio recording triggered. The recording has been saved on the device.`,
+      `EMERGENCY ALERT from ${userName}\n\n${customMessage}\n\nLocation: ${mapsLink}\n\nAudio recording triggered. The recording has been saved on the device.`,
       attachments
     );
   } catch (error) {
