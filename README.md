@@ -1,4 +1,4 @@
-# Safe — Covert Safety for Survivors of Gender-Based Violence
+# Safe - Covert Safety for Survivors of Gender-Based Violence
 
 **Safe** looks like three everyday apps — a calculator, a weather app, and a clothing boutique. Underneath, it is a covert emergency alert system that lets a victim of gender-based violence (GBV) summon help and capture evidence **without the perpetrator ever knowing the app exists**.
 
