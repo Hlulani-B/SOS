@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function LandingPage({ onNavigate }) {
+export default function LandingPage({ onNavigate, firstRun }) {
   const handleNavigate = (view) => {
     localStorage.setItem("view", view);
     if (onNavigate) onNavigate(view);
@@ -21,7 +21,7 @@ export default function LandingPage({ onNavigate }) {
             <button className="header-btn" style={styles.headerBtn} onClick={() => handleNavigate("setup")}>
               Emergency Contacts
             </button>
-            <button className="get-started-btn" style={styles.gettingStartedBtn} onClick={() => handleNavigate("guide")}>
+            <button className="get-started-btn" style={styles.gettingStartedBtn} onClick={() => handleNavigate(firstRun ? "setup" : "guide")}>
               Get Started
             </button>
           </div>
@@ -32,7 +32,7 @@ export default function LandingPage({ onNavigate }) {
       <main className="main" style={styles.main}>
         {/* Left Side */}
         <div className="left" style={styles.left}>
-          <span className="eyebrow" style={styles.eyebrow}>Welcome back</span>
+          <span className="eyebrow" style={styles.eyebrow}>{firstRun ? "Welcome" : "Welcome back"}</span>
           <h2 className="title" style={styles.title}>Your safety, simplified.</h2>
           <p className="description" style={styles.description}>
             Three everyday apps. One hidden lifeline. Weather, Style, and Calculator

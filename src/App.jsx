@@ -31,11 +31,9 @@ export default function App() {
 
   // The tab title follows the current view: Weather, Calculator, Setup, Guide...
   // The style page keeps its on-screen name (Maison); the landing tab says Safe.
+  // (No profile-based override: a brand-new visitor sits on the landing page,
+  // and their tab must not say "Setup".)
   useEffect(() => {
-    if (!hasProfile) {
-      document.title = 'Setup';
-      return;
-    }
     if (!currentView) {
       document.title = 'Safe';
       return;
@@ -52,7 +50,7 @@ export default function App() {
       support: 'Support'
     };
     document.title = titles[view] || 'Safe';
-  }, [currentView, hasProfile]);
+  }, [currentView]);
 
   const changeView = (viewName) => {
     if (viewName) {
@@ -64,17 +62,12 @@ export default function App() {
     }
   };
 
-  // 1. If no user profile, show setup page
-  if (!hasProfile) {
+  // 1. Handle special routes
+  if (currentView === 'setup') {
     return <SetupPage onComplete={() => {
       setHasProfile(true);
       changeView('guide');
     }} />;
-  }
-
-  // 2. Handle special routes
-  if (currentView === 'setup') {
-    return <SetupPage onComplete={() => changeView('guide')} />;
   }
 
   if (currentView === 'guide') {
@@ -89,9 +82,16 @@ export default function App() {
     return <SupportPage onComplete={() => changeView(null)} />;
   }
 
-  // 3. If 'view' is NOT set, render the Landing Page
+  // 2. If 'view' is NOT set, render the Landing Page. This is also the
+  // first screen a brand-new visitor sees - "Get Started" (firstRun) takes
+  // them to setup, then the guide, then back here.
   if (!currentView) {
-    return <LandingPage onNavigate={(view) => changeView(view)} />;
+    return (
+      <LandingPage
+        onNavigate={(view) => changeView(view)}
+        firstRun={!hasProfile}
+      />
+    );
   }
 
   // 4. If 'view' IS set, route to the corresponding page
