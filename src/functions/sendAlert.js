@@ -22,9 +22,12 @@
 const RESEND_ENDPOINT = "/api/emails";
 const ALERT_FROM = import.meta.env.VITE_ALERT_FROM_EMAIL || "Safe <onboarding@resend.dev>";
 
-// Comfortably below Resend's 40MB after-base64 limit (room for the JSON
-// envelope and the message text on top of the attachment).
-const MAX_ATTACHMENT_BYTES = 30 * 1024 * 1024;
+// Sized for the strictest hop in the delivery path: Vercel serverless
+// functions cap request bodies at ~4.5MB (Resend itself allows 40MB, and
+// the dev proxy has no limit, so production is the constraint). Oversized
+// attachments are dropped with a note in the email body - the alert
+// itself always sends.
+const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
 
 // Converts a Blob into a plain base64 string - the format Resend expects in
 // attachments[].content. Encodes the raw bytes directly instead of parsing a

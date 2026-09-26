@@ -155,6 +155,20 @@ npm run preview # serve the production build
 
 ---
 
+## Deployment (Vercel)
+
+The app deploys to Vercel with zero code changes:
+
+1. **Import the repo** (New Project → import from GitHub). Vercel auto-detects Vite — leave Build Command (`npm run build`), Output Directory (`dist`) and Install Command at their defaults.
+2. **Add the environment variable before deploying**: expand Environment Variables and add `RESEND_API_KEY` with the key from your `.env`. It is server-side only — Vercel functions see it, the browser bundle never does.
+3. **Deploy.** Every push to `main` triggers an automatic redeploy.
+
+Email delivery in production runs through `api/emails.js`, a serverless function that mirrors the dev proxy: the browser still posts to same-origin `/api/emails`, and the function forwards to Resend with the key attached server-side. Client code is identical in dev and production.
+
+> Serverless functions cap request bodies at ~4.5MB, so the attachment guard (4MB base64 ≈ 3 minutes of video at the app's bitrate) is sized for that hop — an oversized recording is dropped with a note in the email, and the alert itself always sends.
+
+---
+
 ## Challenges Faced
 
 **1. SMS delivery died behind a paywall.**
@@ -203,11 +217,12 @@ Every natural design (accounts, a contacts database, message history) would crea
 
 ```
 browser → POST /api/emails (same origin)
-        → Vite proxy attaches Authorization: Bearer RESEND_API_KEY
+   dev:  Vite proxy attaches Authorization: Bearer RESEND_API_KEY
+   prod: api/emails.js (Vercel serverless function) attaches the same header
         → api.resend.com/emails → contact's inbox
 ```
 
-The key is loaded via `loadEnv()` in `vite.config.js` and exists only in server memory. Errors from Resend are parsed by `explainResendError()`, which appends plain-English `-> FIX:` hints to the console for the common failure modes (free-tier recipient restriction, invalid key).
+The key is loaded via `loadEnv()` in `vite.config.js` in development, and from the deployment's environment variables by `api/emails.js` in production — it exists only in server memory, never in the browser bundle. Errors from Resend are parsed by `explainResendError()`, which appends plain-English `-> FIX:` hints to the console for the common failure modes (free-tier recipient restriction, invalid key).
 
 ### The disguise layer
 
@@ -227,7 +242,8 @@ The Twilio path was not deleted: `.env` vars remain, `phoneUtils.js` still holds
 ```
 sos/
 ├── index.html                  # Vite host page (title: "Safe")
-├── vite.config.js              # build + the /api/emails proxy (key stays server-side)
+├── vite.config.js              # build + the /api/emails dev proxy (key stays server-side)
+├── api/emails.js               # Vercel serverless function (production email relay)
 ├── .env                        # RESEND_API_KEY (git-ignored — never commit)
 └── src/
     ├── App.jsx                 # view switch (localStorage 'view') + per-view tab title
